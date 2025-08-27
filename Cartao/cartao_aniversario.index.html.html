@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cartão de Aniversário</title>
+  <style>
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial}
+    body{overflow:hidden;background:linear-gradient(135deg,#ffd1dc 0%, #ffe7c7 50%, #fff6f9 100%);}
+
+    .stage{position:relative;width:100%;height:100vh;display:flex;align-items:center;justify-content:center}
+    .heart{position:absolute;transform:rotate(45deg);filter:drop-shadow(0 6px 14px rgba(0,0,0,0.12));}
+    .heart::before, .heart::after{content:"";position:absolute;border-radius:50%;}
+
+    .photos{position:absolute;inset:0;pointer-events:none}
+    .photo{position:absolute;width:110px;height:110px;border-radius:999px;object-fit:cover;border:4px solid rgba(255,255,255,0.85);box-shadow:0 12px 30px rgba(0,0,0,0.18);will-change:transform,opacity}
+
+    .center-wrap{position:relative;z-index:40;display:flex;align-items:center;justify-content:center}
+    .center-heart{width:min(360px,84vw);height:min(360px,84vw);position:relative;display:flex;align-items:center;justify-content:center;border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.08), transparent 30%), linear-gradient(135deg,#ff7eb3 0%, #ffb199 100%);
+      box-shadow:0 20px 60px rgba(255,120,140,0.18), inset 0 -6px 20px rgba(0,0,0,0.08);padding:28px;text-align:center;}
+    .center-heart .message{font-weight:700;color:white;font-size:20px;line-height:1.05;max-width:80%;word-wrap:break-word;text-shadow:0 4px 14px rgba(0,0,0,0.2)}
+    .cursor{display:inline-block;width:2px;height:1em;background:rgba(255,255,255,0.95);margin-left:6px;vertical-align:middle;animation:blink 1s steps(2) infinite}
+    @keyframes blink{50%{opacity:0}}
+
+    .hint{position:absolute;top:12px;left:12px;z-index:60;background:rgba(255,255,255,0.12);padding:8px 10px;border-radius:8px;color:white;font-size:13px;backdrop-filter:blur(6px)}
+    .footer{position:absolute;bottom:12px;width:100%;text-align:center;color:rgba(255,255,255,0.85);font-size:13px}
+    @media (max-width:420px){.center-heart .message{font-size:16px}}
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="photos" id="photos"></div>
+    <div class="center-wrap" aria-hidden="false">
+      <div class="center-heart" id="centerHeart">
+        <div class="message" id="heartMessage" data-message="Feliz aniversário! Você é incrível e eu te amo 💖"> </div>
+        <span class="cursor" id="cursor" aria-hidden="true"></span>
+      </div>
+    </div>
+    <div class="hint">Toque na tela para repetir a escrita</div>
+    <div class="footer">Abra este arquivo localmente ou envie a pasta com as imagens (veja instruções)</div>
+  </div>
+  <script>
+    const photos = [
+      'images/photo1.jpg',
+      'images/photo2.jpg',
+      'images/photo3.jpg',
+      'images/photo4.jpg',
+      'images/photo5.jpg'
+    ];
+
+    const centralMessage = document.getElementById('heartMessage').dataset.message || 'Feliz aniversário!';
+    const typingSpeed = 45;
+
+    const messageEl = document.getElementById('heartMessage');
+    const cursorEl = document.getElementById('cursor');
+
+    function typeMessage(text, speed){
+      messageEl.textContent = '';
+      cursorEl.style.display = 'inline-block';
+      let i = 0;
+      return new Promise(resolve=>{
+        const t = setInterval(()=>{
+          messageEl.textContent += text.charAt(i);
+          i++;
+          if(i >= text.length){
+            clearInterval(t);
+            cursorEl.style.display = 'none';
+            resolve();
+          }
+        }, speed);
+      });
+    }
+
+    (async ()=>{ await typeMessage(centralMessage, typingSpeed); })();
+    document.addEventListener('click', ()=>{ typeMessage(centralMessage, typingSpeed); });
+
+    const stage = document.querySelector('.stage');
+    function createHearts(count=28){
+      for(let i=0;i<count;i++){
+        const h = document.createElement('div');
+        h.className = 'heart';
+        const size = Math.floor(Math.random()*36)+18;
+        h.style.width = size+'px';
+        h.style.height = size+'px';
+        h.style.left = Math.random()*100 + '%';
+        h.style.bottom = '-60px';
+        h.style.opacity = (0.6 + Math.random()*0.5).toFixed(2);
+        const color1 = `hsl(${Math.floor(320+Math.random()*40)},90%,65%)`;
+        const color2 = `hsl(${Math.floor(340+Math.random()*20)},85%,75%)`;
+        h.style.background = `linear-gradient(135deg, ${color1}, ${color2})`;
+        const lobe1 = document.createElement('span');
+        const lobe2 = document.createElement('span');
+        [lobe1,lobe2].forEach((el)=>{
+          el.style.position='absolute';
+          el.style.width = size+'px';
+          el.style.height = size+'px';
+          el.style.background = h.style.background;
+          el.style.borderRadius = '50%';
+        });
+        lobe1.style.left = '-'+(size/2)+'px';
+        lobe1.style.top = '-'+(size/2)+'px';
+        lobe2.style.left = (size/2)+'px';
+        lobe2.style.top = '0px';
+        h.appendChild(lobe1);
+        h.appendChild(lobe2);
+        const dur = (8 + Math.random()*10).toFixed(2);
+        const delay = (Math.random()*-10).toFixed(2);
+        h.style.animation = `float-${i} ${dur}s linear ${delay}s infinite`;
+        const dx = (Math.random()*120-60).toFixed(2);
+        const dy = (200 + Math.random()*300).toFixed(2);
+        const rotate = (Math.random()*60-30).toFixed(2);
+        const styleSheet = document.styleSheets[0];
+        const name = `float-${i}`;
+        const keyframes = `@keyframes ${name} {0%{transform:translateY(0) rotate(45deg) scale(0.8);}50%{transform:translate(${dx}px,-${dy/2}px) rotate(${rotate}deg) scale(1);}100%{transform:translate(${dx*0.6}px,-${dy}px) rotate(${rotate/2}deg) scale(0.9);opacity:0;}}`;
+        try{ styleSheet.insertRule(keyframes, styleSheet.cssRules.length); }catch(e){}
+        stage.appendChild(h);
+      }
+    }
+    createHearts();
+
+    const photosContainer = document.getElementById('photos');
+    function createFloatingPhotos(list){
+      if(!Array.isArray(list) || list.length===0) return;
+      list.forEach((src, idx)=>{
+        const img = document.createElement('img');
+        img.className = 'photo';
+        img.src = src;
+        img.alt = 'Foto '+(idx+1);
+        const left = Math.random()*82 + 6;
+        const bottom = -40 - Math.random()*40;
+        img.style.left = left + '%';
+        img.style.bottom = bottom + 'px';
+        const size = 80 + Math.floor(Math.random()*60);
+        img.style.width = size + 'px';
+        img.style.height = size + 'px';
+        img.style.opacity = 0;
+        const dur = (12 + Math.random()*12).toFixed(2);
+        const delay = (Math.random()*-6).toFixed(2);
+        const dx = (Math.random()*140-70).toFixed(2);
+        const dy = (160 + Math.random()*260).toFixed(2);
+        const rotate = (Math.random()*20-10).toFixed(2);
+        const styleSheet = document.styleSheets[0];
+        const name = `drift-${idx}`;
+        const keyframes = `@keyframes ${name} {0%{transform:translateY(0) translateX(0) rotate(0deg);opacity:0;}10%{opacity:1;}50%{transform:translate(${dx}px,-${dy/2}px) rotate(${rotate}deg);opacity:1;}100%{transform:translate(${dx*0.6}px,-${dy}px) rotate(${rotate/2}deg);opacity:0;}}`;
+        try{ styleSheet.insertRule(keyframes, styleSheet.cssRules.length); }catch(e){}
+        img.style.animation = `${name} ${dur}s linear ${delay}s infinite`;
+        photosContainer.appendChild(img);
+      });
+    }
+    setTimeout(()=>{ createFloatingPhotos(photos); }, 350);
+  </script>
+</body>
+</html>
